@@ -1,0 +1,7 @@
+node.type.*.third_party.label_help:
+  type: mapping
+  label: 'Header field Label'
+  mapping:
+    label_help:
+      type: text
+      label: 'Header field Label'
