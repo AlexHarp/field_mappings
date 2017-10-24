@@ -20,8 +20,10 @@ use Drupal\Core\Form\FormStateInterface;
 function label_help_form_alter(&$form, &$form_state, $form_id) {
   $children = array_intersect_key($form, array_flip(Element::children($form)));
   foreach ($children as $key => $item) {
+    dpm($key, "key");
+    
     $form_object = $form_state->getFormObject();
-    if (!method_exists($form_object, 'getEntity')) {
+    if (!method_exists($form_object, 'getEntity')){ 
       continue;
     }
     $form_entity = $form_object->getEntity();
@@ -36,8 +38,13 @@ function label_help_form_alter(&$form, &$form_state, $form_id) {
     $field = $form_object->getEntity()->getFieldDefinition($key);
 
     $label_help = NULL;
+    $label_help_pd = NULL;
     if (method_exists($field, 'getThirdPartySetting')) {
+      //dpm($field, "field");
       $label_help = $field->getThirdPartySetting('label_help', 'label_help_description');
+dpm($label_help, "help fheader");
+      $label_help_mapping = $field->getThirdPartySettings('label_help', 'label_help_ecat'); //not sure why this returs and array but im rolling with it
+dpm($label_help_mapping, "product description");
     }
     if (!is_null($label_help)) {
       $theme_option = array(
@@ -53,7 +60,19 @@ function label_help_form_alter(&$form, &$form_state, $form_id) {
         // to get this working for one-line text fields, and
         // form[$key][$item['#language']][0]['default']['#theme_options'] has to be set
         // to get this working for some other fields.
-        $label_help_markup = t('<div class="description label-description">@label_help</div>', ['@label_help' => $label_help]);
+	$label_help_markup = "";
+        $label_help_markup .= t('<div class="description label-description">@label_help</div>', ['@label_help' => $label_help]);
+        if(array_key_exists('label_help_pd', $label_help_mapping))
+          $label_help_markup .= t('<div class=description label-pd">Product description -> @label_help_pd</div>', ['@label_help_pd' => $label_help_mapping['label_help_pd']]);
+        if(array_key_exists('label_help_pmp', $label_help_mapping))
+          $label_help_markup .= t('<div class=description label-pmp">Project management plan -> @label_help_pmp</div>', ['@label_help_pmp' => $label_help_mapping['label_help_pmp']]);
+        if(array_key_exists('label_help_ecat', $label_help_mapping))
+          $label_help_markup .= t('<div class=description label-ecat">eCat -> @label_help_ecat/div>', ['@label_help_ecat' => $label_help_mapping['label_help_ecat']]);
+        if(array_key_exists('label_help_nci', $label_help_mapping))
+          $label_help_markup .= t('<div class=description label-nci">NCI -> @label_help_nci</div>', ['@label_help_nci' => $label_help_mapping['label_help_nci']]);
+        if(array_key_exists('label_help_cf', $label_help_mapping))
+          $label_help_markup .= t('<div class=description label-cf">CF -> @label_help_cf</div>', ['@label_help_cf' => $label_help_mapping['label_help_cf']]);
+
         if (isset($form[$key]['widget'][0]['value'])) {
           $form[$key]['widget'][0]['value']['#label_suffix'] = $label_help_markup;
         }
@@ -163,40 +182,6 @@ function label_help_form_field_config_edit_form_alter(&$form, &$form_state, $for
    );*/
 
   $form['#entity_builders'][] = 'label_help_form_field_config_edit_form_builder';
-}
-
-function sayHello(array &$form, FormStateInterface $form_state){ 
-  $elem['container'] = array(
-    '#type' => 'fieldset',
-    '#attributes' => [
-      'id' => ['edit-output'],
-    ],
-  );
-
-
-//TODO: make tax
-//TODO: ajax to enable text box on select
-   $elem['container']['transform'] = array(//['settings']['label_help_mapping']['add']['tax'] = array(
-    '#type' => 'select',
-    '#title' => t('Selected'),
-    '#options' => array(
-      0 => t('PD'),
-      1 => t('PMP'),
-      2 => t('eCat'),
-      3 => t('NCI'),
-      4 => t('CF'),
-    ),
-    '#default_value' => $category['selected'],
-    '#description' => t('Select the transformation type to map this field to.'),
-   ); 
-  
-   $elem['container']['label'] = array (//['settings']['label_help_mapping']['add']['mapfield'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Maps to',  
-    '#description' => t('Enter the label that this field maps to from the selected transform type.'),
-   );
-
-  return ['#markup' => \Drupal::service('renderer')->render($elem)];
 }
 
 /**
