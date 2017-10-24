@@ -99,12 +99,50 @@ function label_help_form_field_config_edit_form_alter(&$form, &$form_state, $for
     '#type' => 'fieldset',
     '#title' => t('Field mapping'),
     '#collapsible' => TRUE, // Added
-    '#collapsed' => FALSE,  // Added
+    '#collapsed' => TRUE,  // Added
    );
 
+  $form['settings']['label_help_mapping']['pd'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('Project description'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('label_help', 'label_help_pd'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
 
+  $form['settings']['label_help_mapping']['pmp'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('Project management plan'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('label_help', 'label_help_pmp'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['settings']['label_help_mapping']['ecat'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('eCat'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('label_help', 'label_help_ecat'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['settings']['label_help_mapping']['nci'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('NCI'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('label_help', 'label_help_nci'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['settings']['label_help_mapping']['cf'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('CF'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('label_help', 'label_help_cf'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
 //TODO add new tx selection and disabled textfield
-  $form['settings']['label_help_mapping']['new'] = array(
+  /*$form['settings']['label_help_mapping']['new'] = array(
     '#type' => 'button',
     '#value' => t('+'),
     '#ajax' => [
@@ -122,7 +160,7 @@ function label_help_form_field_config_edit_form_alter(&$form, &$form_state, $for
     '#type' => 'container',
     '#prefix' => '<div id="edit-output">',
     '#suffix' => '</div>',
-   );
+   );*/
 
   $form['#entity_builders'][] = 'label_help_form_field_config_edit_form_builder';
 }
@@ -166,11 +204,42 @@ function sayHello(array &$form, FormStateInterface $form_state){
  */
 function label_help_form_field_config_edit_form_builder($entity_type, $field, &$form, FormStateInterface $form_state) {
   if ($form_state->getValue(['settings', 'label_help_description'])) {
-    $
-field->setThirdPartySetting('label_help', 'label_help_description', $form_state->getValue(['settings', 'label_help_description']));
-    return;
+    $field->setThirdPartySetting('label_help', 'label_help_description', $form_state->getValue(['settings', 'label_help_description']));
+    //return;
   }
-  $field->unsetThirdPartySetting('label_help', 'label_help_description');
+  else{
+    $field->unsetThirdPartySetting('label_help', 'label_help_description');
+  }
+  if ($form_state->getValue(['settings', 'label_help_mapping', 'pd'])) {
+    $field->setThirdPartySetting('label_help', 'label_help_pd', $form_state->getValue(['settings', 'label_help_mapping', 'pd']));
+  }
+  else{
+    $field->unsetThirdPartySetting('label_help', 'label_help_pd');
+  }
+  if ($form_state->getValue(['settings', 'label_help_mapping', 'pmp'])) {
+    $field->setThirdPartySetting('label_help', 'label_help_pmp', $form_state->getValue(['settings', 'label_help_mapping', 'pmp']));
+  }
+  else{
+    $field->unsetThirdPartySetting('label_help', 'label_help_pmp');
+  }
+  if ($form_state->getValue(['settings', 'label_help_mapping', 'ecat'])) {
+    $field->setThirdPartySetting('label_help', 'label_help_ecat', $form_state->getValue(['settings', 'label_help_mapping', 'ecat']));
+  }
+  else{
+    $field->unsetThirdPartySetting('label_help', 'label_help_ecat');
+  }
+  if ($form_state->getValue(['settings', 'label_help_mapping', 'nci'])) {
+    $field->setThirdPartySetting('label_help', 'label_help_nci', $form_state->getValue(['settings', 'label_help_mapping', 'nci']));
+  }
+  else{
+    $field->unsetThirdPartySetting('label_help', 'label_help_nci');
+  }
+  if ($form_state->getValue(['settings', 'label_help_mapping', 'cf'])) {
+    $field->setThirdPartySetting('label_help', 'label_help_cf', $form_state->getValue(['settings', 'label_help_mapping', 'cf']));
+  }
+  else{
+    $field->unsetThirdPartySetting('label_help', 'label_help_cf');
+  }
 }
 
 /**
