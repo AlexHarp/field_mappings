@@ -20,7 +20,6 @@ use Drupal\Core\Form\FormStateInterface;
 function label_help_form_alter(&$form, &$form_state, $form_id) {
   $children = array_intersect_key($form, array_flip(Element::children($form)));
   foreach ($children as $key => $item) {
-    dpm($key, "key");
     
     $form_object = $form_state->getFormObject();
     if (!method_exists($form_object, 'getEntity')){ 
@@ -38,18 +37,15 @@ function label_help_form_alter(&$form, &$form_state, $form_id) {
     $field = $form_object->getEntity()->getFieldDefinition($key);
 
     $label_help = NULL;
-    $label_help_pd = NULL;
+    $label_help_mapping = NULL;
     if (method_exists($field, 'getThirdPartySetting')) {
-      //dpm($field, "field");
       $label_help = $field->getThirdPartySetting('label_help', 'label_help_description');
-dpm($label_help, "help fheader");
       $label_help_mapping = $field->getThirdPartySettings('label_help', 'label_help_ecat'); //not sure why this returs and array but im rolling with it
-dpm($label_help_mapping, "product description");
     }
-    if (!is_null($label_help)) {
-      $theme_option = array(
-        'description at top' => $label_help,
-      );
+dpm($label_help, "help fheader");
+dpm($label_help_mapping,"label mapping");
+    if (!is_null($label_help) || (!empty($label_help_mapping && !is_null($label_help_mapping)))) {
+dpm("entered");
       // Put comments above the label for field forms of type 'container'
       // that are specifically configured.
       if (isset($item['#type']) && $item['#type'] == 'container') {
@@ -62,39 +58,55 @@ dpm($label_help_mapping, "product description");
         // to get this working for some other fields.
 	$label_help_markup = "";
         $label_help_markup .= t('<div class="description label-description">@label_help</div>', ['@label_help' => $label_help]);
+        
+        //add colour for field mappings
+	$label_help_markup .= t('<div class="ga_label-field-mappings">'); //style="color:#99ddff; font:bold; padding-left:80px;">');
+        
+        //build string to display   
         if(array_key_exists('label_help_pd', $label_help_mapping))
-          $label_help_markup .= t('<div class=description label-pd">Product description -> @label_help_pd</div>', ['@label_help_pd' => $label_help_mapping['label_help_pd']]);
+          $label_help_markup .= t('<div class="description label-pd">Product description -> @label_help_pd</div>', ['@label_help_pd' => $label_help_mapping['label_help_pd']]);
         if(array_key_exists('label_help_pmp', $label_help_mapping))
-          $label_help_markup .= t('<div class=description label-pmp">Project management plan -> @label_help_pmp</div>', ['@label_help_pmp' => $label_help_mapping['label_help_pmp']]);
+          $label_help_markup .= t('<div class="description label-pmp">Project management plan -> @label_help_pmp</div>', ['@label_help_pmp' => $label_help_mapping['label_help_pmp']]);
         if(array_key_exists('label_help_ecat', $label_help_mapping))
-          $label_help_markup .= t('<div class=description label-ecat">eCat -> @label_help_ecat/div>', ['@label_help_ecat' => $label_help_mapping['label_help_ecat']]);
+          $label_help_markup .= t('<div class="description label-ecat">eCat -> @label_help_ecat</div>', ['@label_help_ecat' => $label_help_mapping['label_help_ecat']]);
         if(array_key_exists('label_help_nci', $label_help_mapping))
-          $label_help_markup .= t('<div class=description label-nci">NCI -> @label_help_nci</div>', ['@label_help_nci' => $label_help_mapping['label_help_nci']]);
+          $label_help_markup .= t('<div class="description label-nci">NCI -> @label_help_nci</div>', ['@label_help_nci' => $label_help_mapping['label_help_nci']]);
         if(array_key_exists('label_help_cf', $label_help_mapping))
-          $label_help_markup .= t('<div class=description label-cf">CF -> @label_help_cf</div>', ['@label_help_cf' => $label_help_mapping['label_help_cf']]);
+          $label_help_markup .= t('<div class="description label-cf">CF -> @label_help_cf</div>', ['@label_help_cf' => $label_help_mapping['label_help_cf']]);
+        $label_help_markup .= t('</div>');
 
+
+ ksm($form[$key]['widget'], "widget: ");
+        //add build string to the correct field type
         if (isset($form[$key]['widget'][0]['value'])) {
           $form[$key]['widget'][0]['value']['#label_suffix'] = $label_help_markup;
+	dpm($key, "key1");
         }
         elseif (isset($form[$key]['widget'][0]['#title'])) {
           $form[$key]['widget'][0]['#label_suffix'] = $label_help_markup;
+	dpm($key, "key2");
         }
         elseif (isset($form[$key]['widget']['#title'])) {
-          $form[$key]['widget']['#label_suffix'] = $label_help_markup;
+	  if(isset($form[$key]['widget']['#suffix'])){
+            $form[$key]['widget']['#suffix'] = $label_help_markup.$form[$key]['widget']['#suffix'];
+	    dpm($key, "key3");
+          } else {
+	   $form[$key]['widget'][0]['target_id']['#description'] = $label_help_markup.$form[$key]['widget'][0]['target_id']['#description'] ;
+	   dpm($key, "key 3.5");
+          }
         }
         elseif (isset($form[$key]['widget']['target_id']['#title'])) {
           $form[$key]['widget']['target_id']['#label_suffix'] = $label_help_markup;
+	dpm($key, "key4");
         }
         // One more for cshs module.
 //        elseif (isset($form[$key][$item['#language']][0]['tid'])) {
 //          $form[$key][$item['#language']][0]['tid']['#theme_options'] = $theme_option;
 //        }
       }
-      // Move comments to the top for other field forms that
-      // are specifically configured.
-      else {
-        $form[$key]['widget']['#label_suffix'] = $label_help_markup;
-      }
+ ksm($form[$key]['widget'], "widget check: ");
+    } else {
+dpm("skip");
     }
   }
 }
@@ -160,26 +172,6 @@ function label_help_form_field_config_edit_form_alter(&$form, &$form_state, $for
     '#default_value' => $fieldConfig->getThirdPartySetting('label_help', 'label_help_cf'),
     '#description' => t('Help text to insert below the label and above the input form element.'),
   );
-//TODO add new tx selection and disabled textfield
-  /*$form['settings']['label_help_mapping']['new'] = array(
-    '#type' => 'button',
-    '#value' => t('+'),
-    '#ajax' => [
-      'callback' => 'sayHello',
-      'event' => 'click',
-      'wrapper' => 'edit-output',
-      'progress' => [
-        'type' => 'throbber',
-        'message' => t('Verifying entry...'),
-       ],
-     ],
-   );
- 
-   $form['settings']['label_help_mapping']['add'] = array(
-    '#type' => 'container',
-    '#prefix' => '<div id="edit-output">',
-    '#suffix' => '</div>',
-   );*/
 
   $form['#entity_builders'][] = 'label_help_form_field_config_edit_form_builder';
 }
