@@ -1,0 +1,224 @@
+<?php
+
+use Drupal\Core\Render\Element;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * @file
+ * This is the file description for the Label Help module.
+ *
+ * In normal rendering of textarea form fields that are text-format-enabled,
+ * the field's help text gets placed below the text format selector and tips.
+ * This means that website users are unlikely to notice and read the help text.
+ * This module creates help text to be placed directly below the field's
+ * label.
+ */
+
+/**
+ * Implements hook_form_alter().
+ */
+function field_mappings_form_alter(&$form, &$form_state, $form_id) {
+  $children = array_intersect_key($form, array_flip(Element::children($form)));
+  foreach ($children as $key => $item) {
+    
+    $form_object = $form_state->getFormObject();
+    if (!method_exists($form_object, 'getEntity')){ 
+      continue;
+    }
+    $form_entity = $form_object->getEntity();
+    if (!method_exists($form_entity, 'getFieldDefinition')) {
+      continue;
+    }
+    $method = new ReflectionMethod($form_entity, 'getFieldDefinition');
+    if(!$method->isPublic()) {
+      continue;
+    }
+    $form_entity_get_field_definition_method = new ReflectionMethod($form_entity, 'getFieldDefinition');
+    $field = $form_object->getEntity()->getFieldDefinition($key);
+
+    $field_mappings = NULL;
+    $field_mappings_mapping = NULL;
+    if (method_exists($field, 'getThirdPartySetting')) {
+      $field_mappings = $field->getThirdPartySetting('field_mappings', 'field_mappings_description');
+      $field_mappings_mapping = $field->getThirdPartySettings('field_mappings', 'field_mappings_ecat'); //not sure why this returs and array but im rolling with it
+    }
+    if (!is_null($field_mappings) || (!empty($field_mappings_mapping && !is_null($field_mappings_mapping)))) {
+      // Put comments above the label for field forms of type 'container'
+      // that are specifically configured.
+      if (isset($item['#type']) && $item['#type'] == 'container') {
+        // For reasons best known to the lunatics who designed the Forms API,
+        // $form[$key][$item['#language']][0]['#theme_options'] has to be set to get
+        // this working for textarea fields, and
+        // form[$key][$item['#language']][0]['value']['#theme_options'] has to be set
+        // to get this working for one-line text fields, and
+        // form[$key][$item['#language']][0]['default']['#theme_options'] has to be set
+        // to get this working for some other fields.
+	$field_mappings_markup = "";
+        $field_mappings_markup .= t('<div class="description label-description">@field_mappings</div>', ['@field_mappings' => $field_mappings]);
+        
+        //add colour for field mappings
+	$field_mappings_markup .= t('<div class="ga_label-field-mappings">'); //style="color:#99ddff; font:bold; padding-left:80px;">');
+        
+        //build string to display   
+        if(array_key_exists('field_mappings_pd', $field_mappings_mapping))
+          $field_mappings_markup .= t('<div class="description label-pd">Product description -> @field_mappings_pd</div>', ['@field_mappings_pd' => $field_mappings_mapping['field_mappings_pd']]);
+        if(array_key_exists('field_mappings_pmp', $field_mappings_mapping))
+          $field_mappings_markup .= t('<div class="description label-pmp">Project management plan -> @field_mappings_pmp</div>', ['@field_mappings_pmp' => $field_mappings_mapping['field_mappings_pmp']]);
+        if(array_key_exists('field_mappings_ecat', $field_mappings_mapping))
+          $field_mappings_markup .= t('<div class="description label-ecat">eCat -> @field_mappings_ecat</div>', ['@field_mappings_ecat' => $field_mappings_mapping['field_mappings_ecat']]);
+        if(array_key_exists('field_mappings_nci', $field_mappings_mapping))
+          $field_mappings_markup .= t('<div class="description label-nci">NCI -> @field_mappings_nci</div>', ['@field_mappings_nci' => $field_mappings_mapping['field_mappings_nci']]);
+        if(array_key_exists('field_mappings_cf', $field_mappings_mapping))
+          $field_mappings_markup .= t('<div class="description label-cf">CF -> @field_mappings_cf</div>', ['@field_mappings_cf' => $field_mappings_mapping['field_mappings_cf']]);
+        $field_mappings_markup .= t('</div>');
+
+
+        //add build string to the correct field type
+        if (isset($form[$key]['widget'][0]['value'])) {
+          $form[$key]['widget'][0]['value']['#label_suffix'] = $field_mappings_markup;
+        }
+        elseif (isset($form[$key]['widget'][0]['#title'])) {
+          $form[$key]['widget'][0]['#label_suffix'] = $field_mappings_markup;
+        }
+        elseif (isset($form[$key]['widget']['#title'])) {
+	  if(isset($form[$key]['widget']['#suffix'])){
+            $form[$key]['widget']['#suffix'] = $field_mappings_markup.$form[$key]['widget']['#suffix'];
+          } else {
+	   $form[$key]['widget'][0]['target_id']['#description'] = $field_mappings_markup.$form[$key]['widget'][0]['target_id']['#description'] ;
+          }
+        }
+        elseif (isset($form[$key]['widget']['target_id']['#title'])) {
+          $form[$key]['widget']['target_id']['#label_suffix'] = $field_mappings_markup;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+
+function field_mappings_form_field_config_edit_form_alter(&$form, &$form_state, $form_id) {
+  $fieldConfig = $form_state->getFormObject()->getEntity();
+  // Add settings for file upload widgets.
+  $form['settings']['field_mappings_description'] = array(
+    '#type' => 'textarea',
+    '#rows' => 5,
+    '#title' => t('Header field Label'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('field_mappings', 'field_mappings_description'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+  
+  $form['settings']['field_mappings_mapping'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Field mapping'),
+    '#collapsible' => TRUE, // Added
+    '#collapsed' => TRUE,  // Added
+   );
+
+  $form['settings']['field_mappings_mapping']['pd'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('Project description'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('field_mappings', 'field_mappings_pd'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['settings']['field_mappings_mapping']['pmp'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('Project management plan'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('field_mappings', 'field_mappings_pmp'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['settings']['field_mappings_mapping']['ecat'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('eCat'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('field_mappings', 'field_mappings_ecat'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['settings']['field_mappings_mapping']['nci'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('NCI'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('field_mappings', 'field_mappings_nci'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['settings']['field_mappings_mapping']['cf'] = array(
+    '#type' => 'textarea',
+    '#rows' => 1,
+    '#title' => t('CF'),
+    '#default_value' => $fieldConfig->getThirdPartySetting('field_mappings', 'field_mappings_cf'),
+    '#description' => t('Help text to insert below the label and above the input form element.'),
+  );
+
+  $form['#entity_builders'][] = 'field_mappings_form_field_config_edit_form_builder';
+}
+
+/**
+ * Entity builder for the menu configuration entity.
+ */
+function field_mappings_form_field_config_edit_form_builder($entity_type, $field, &$form, FormStateInterface $form_state) {
+  if ($form_state->getValue(['settings', 'field_mappings_description'])) {
+    $field->setThirdPartySetting('field_mappings', 'field_mappings_description', $form_state->getValue(['settings', 'field_mappings_description']));
+    //return;
+  }
+  else{
+    $field->unsetThirdPartySetting('field_mappings', 'field_mappings_description');
+  }
+  if ($form_state->getValue(['settings', 'field_mappings_mapping', 'pd'])) {
+    $field->setThirdPartySetting('field_mappings', 'field_mappings_pd', $form_state->getValue(['settings', 'field_mappings_mapping', 'pd']));
+  }
+  else{
+    $field->unsetThirdPartySetting('field_mappings', 'field_mappings_pd');
+  }
+  if ($form_state->getValue(['settings', 'field_mappings_mapping', 'pmp'])) {
+    $field->setThirdPartySetting('field_mappings', 'field_mappings_pmp', $form_state->getValue(['settings', 'field_mappings_mapping', 'pmp']));
+  }
+  else{
+    $field->unsetThirdPartySetting('field_mappings', 'field_mappings_pmp');
+  }
+  if ($form_state->getValue(['settings', 'field_mappings_mapping', 'ecat'])) {
+    $field->setThirdPartySetting('field_mappings', 'field_mappings_ecat', $form_state->getValue(['settings', 'field_mappings_mapping', 'ecat']));
+  }
+  else{
+    $field->unsetThirdPartySetting('field_mappings', 'field_mappings_ecat');
+  }
+  if ($form_state->getValue(['settings', 'field_mappings_mapping', 'nci'])) {
+    $field->setThirdPartySetting('field_mappings', 'field_mappings_nci', $form_state->getValue(['settings', 'field_mappings_mapping', 'nci']));
+  }
+  else{
+    $field->unsetThirdPartySetting('field_mappings', 'field_mappings_nci');
+  }
+  if ($form_state->getValue(['settings', 'field_mappings_mapping', 'cf'])) {
+    $field->setThirdPartySetting('field_mappings', 'field_mappings_cf', $form_state->getValue(['settings', 'field_mappings_mapping', 'cf']));
+  }
+  else{
+    $field->unsetThirdPartySetting('field_mappings', 'field_mappings_cf');
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function field_mappings_preprocess_form_element(&$variables) {
+  if (!isset($variables['element']['#name'])) {
+    return;
+  }
+  // setting a label suffix/prefix
+  $element = &$variables['element'];
+  if (!empty($variables['label'])) {
+    if (!empty($element['#label_prefix'])) {
+      $variables['label']['#prefix'] = $element['#label_prefix'];
+    }
+    if (!empty($element['#label_suffix'])) {
+      $variables['label']['#suffix'] = $element['#label_suffix'];
+    }
+  }
+}
+
