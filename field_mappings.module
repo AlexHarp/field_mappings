@@ -55,23 +55,29 @@ function field_mappings_form_alter(&$form, &$form_state, $form_id) {
         // to get this working for some other fields.
 	$field_mappings_markup = "";
         $field_mappings_markup .= t('<div class="description label-description">@field_mappings</div>', ['@field_mappings' => $field_mappings]);
-        
+	 
         //add colour for field mappings
-	$field_mappings_markup .= t('<div class="ga_label-field-mappings">'); //style="color:#99ddff; font:bold; padding-left:80px;">');
+	$field_mappings_markup .= t('<div class="description ga-label-field-mappings">'); //style="color:#99ddff; font:bold; padding-left:80px;">')
+	//$field_mappings_markup .= t('` <details class="field--type-entity-reference field--name-field-data-sources field--widget-entity-reference-autocomplete js-form-wrapper form-wrapper" data-drupal-selector="edit-default-value-input" aria-describedby="edit-default-value-input--description" id="edit-default-value-input" open="open">    <summary role="button" aria-controls="edit-default-value-input" aria-expanded="true" aria-pressed="true">Default value</summary>');        
+	$field_mappings_markup .= t('<details data-drupal-selector="mapping-group">'); 
+	$field_mappings_markup .= t('<summary role="button" aria-controls="mappings-group" aria-expanded="false" aria-pressed="false"> Mappings </summary>');  
+	$field_mappings_markup .= t('<table class="ga-mapping-tbl" width="100%"><tr class="ga-mapping-tr"><th class="ga-mapping-th">');
         
         //build string to display   
         if(array_key_exists('field_mappings_pd', $field_mappings_mapping))
-          $field_mappings_markup .= t('<div class="description label-pd">Product description -> @field_mappings_pd</div>', ['@field_mappings_pd' => $field_mappings_mapping['field_mappings_pd']]);
+          $field_mappings_markup .= t('<div class="label-pd">Product description -> @field_mappings_pd</div>', ['@field_mappings_pd' => $field_mappings_mapping['field_mappings_pd']]);
         if(array_key_exists('field_mappings_pmp', $field_mappings_mapping))
-          $field_mappings_markup .= t('<div class="description label-pmp">Project management plan -> @field_mappings_pmp</div>', ['@field_mappings_pmp' => $field_mappings_mapping['field_mappings_pmp']]);
+          $field_mappings_markup .= t('<div class="label-pmp">Project management plan -> @field_mappings_pmp</div>', ['@field_mappings_pmp' => $field_mappings_mapping['field_mappings_pmp']]);
         if(array_key_exists('field_mappings_ecat', $field_mappings_mapping))
-          $field_mappings_markup .= t('<div class="description label-ecat">eCat -> @field_mappings_ecat</div>', ['@field_mappings_ecat' => $field_mappings_mapping['field_mappings_ecat']]);
+          $field_mappings_markup .= t('<div class="label-ecat">eCat -> @field_mappings_ecat</div>', ['@field_mappings_ecat' => $field_mappings_mapping['field_mappings_ecat']]);
         if(array_key_exists('field_mappings_nci', $field_mappings_mapping))
-          $field_mappings_markup .= t('<div class="description label-nci">NCI -> @field_mappings_nci</div>', ['@field_mappings_nci' => $field_mappings_mapping['field_mappings_nci']]);
+          $field_mappings_markup .= t('<div class="label-nci">NCI -> @field_mappings_nci</div>', ['@field_mappings_nci' => $field_mappings_mapping['field_mappings_nci']]);
         if(array_key_exists('field_mappings_cf', $field_mappings_mapping))
-          $field_mappings_markup .= t('<div class="description label-cf">CF -> @field_mappings_cf</div>', ['@field_mappings_cf' => $field_mappings_mapping['field_mappings_cf']]);
-        $field_mappings_markup .= t('</div>');
+          $field_mappings_markup .= t('<div class="label-cf">CF -> @field_mappings_cf</div>', ['@field_mappings_cf' => $field_mappings_mapping['field_mappings_cf']]);
 
+	$field_mappings_markup .= t('</th></tr></table></details>');
+        $field_mappings_markup .= t('</div>');
+	
 
         //add build string to the correct field type
         if (isset($form[$key]['widget'][0]['value'])) {
