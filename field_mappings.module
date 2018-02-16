@@ -60,7 +60,7 @@ function field_mappings_form_alter(&$form, &$form_state, $form_id) {
 	$field_mappings_markup .= t('<div class="description ga-label-field-mappings">'); //style="color:#99ddff; font:bold; padding-left:80px;">')
 	//$field_mappings_markup .= t('` <details class="field--type-entity-reference field--name-field-data-sources field--widget-entity-reference-autocomplete js-form-wrapper form-wrapper" data-drupal-selector="edit-default-value-input" aria-describedby="edit-default-value-input--description" id="edit-default-value-input" open="open">    <summary role="button" aria-controls="edit-default-value-input" aria-expanded="true" aria-pressed="true">Default value</summary>');        
 	$field_mappings_markup .= t('<details data-drupal-selector="mapping-group">'); 
-	$field_mappings_markup .= t('<summary role="button" aria-controls="mappings-group" aria-expanded="false" aria-pressed="false"> Mappings </summary>');  
+	$field_mappings_markup .= t('<summary role="button" aria-controls="mappings-group" aria-expanded="false" aria-pressed="false"> How is this field used? (click to expand) </summary>');  
 	$field_mappings_markup .= t('<table class="ga-mapping-tbl" width="100%"><tr class="ga-mapping-tr"><th class="ga-mapping-th">');
         
         //build string to display   
@@ -118,7 +118,7 @@ function field_mappings_form_field_config_edit_form_alter(&$form, &$form_state, 
   
   $form['settings']['field_mappings_mapping'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Field mapping'),
+    '#title' => t('How is this field used? (click to expand)'),
     '#collapsible' => TRUE, // Added
     '#collapsed' => TRUE,  // Added
    );
