@@ -90,7 +90,7 @@ function field_mappings_form_alter(&$form, &$form_state, $form_id) {
 	  if(isset($form[$key]['widget']['#suffix'])){
             $form[$key]['widget']['#suffix'] = $field_mappings_markup.$form[$key]['widget']['#suffix'];
           } else {
-	   $form[$key]['widget'][0]['target_id']['#description'] = $field_mappings_markup.$form[$key]['widget'][0]['target_id']['#description'] ;
+	   $form[$key]['widget'][0]['target_id']['#description'] = $field_mappings_markup.$form[$key]['widget'][0]['target_id']['#description'];
           }
         }
         elseif (isset($form[$key]['widget']['target_id']['#title'])) {
